@@ -12,6 +12,7 @@ import (
 const (
 	_ int = iota
 	LOWEST
+	RANGE
 	EQUALS
 	LESSGREATER
 	SUM
@@ -71,6 +72,8 @@ func NewParser(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.FUNCTION, p.parseFnLiteral)
 	p.registerPrefix(token.STR, p.parseStrLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrLiteral)
+	p.registerPrefix(token.FOR, p.parseForLoop)
+	p.registerPrefix(token.WHILE, p.parseWhileLoop)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registeInfix(token.PLUS, p.parseInfixExpression)
@@ -96,6 +99,61 @@ func NewParser(l *lexer.Lexer) *Parser {
 	p.nextToken()
 	return p
 }
+
+func (p *Parser) parseWhileLoop() ast.Expression {
+
+	wl := &ast.WhileLoop{Token: p.curToken}
+
+	if !p.peekTokenIs(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+
+	wl.LoopCond = p.parseExpression(LOWEST)
+
+	p.nextToken()
+
+	wl.Body = p.parseBlockStatement()
+
+	p.nextToken()
+
+	return wl
+
+}
+
+func (p *Parser) parseForLoop() ast.Expression {
+	fl := &ast.ForLoop{Token: p.curToken}
+
+	if !p.peekTokenIs(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+	p.nextToken()
+
+	fl.LoopVar = p.parseLetStatement()
+
+	p.nextToken()
+
+	fl.LoopCond = p.parseExpression(LOWEST)
+
+	p.nextToken()
+	p.nextToken()
+
+	fl.PostLoop = p.parseExpression(LOWEST)
+
+	p.nextToken()
+	p.nextToken()
+
+	fl.Body = p.parseBlockStatement()
+
+	p.nextToken()
+
+	return fl
+
+}
+
 func (p *Parser) parseFloatLiteral() ast.Expression {
 
 	fl := &ast.FloatLiteral{Token: p.curToken}

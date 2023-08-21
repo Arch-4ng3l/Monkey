@@ -108,6 +108,12 @@ func Eval(node ast.Node, env *object.Env) object.Object {
 
 		return evalBlockStatement(node, env)
 
+	case *ast.ForLoop:
+		return evalForLoop(node, env)
+
+	case *ast.WhileLoop:
+		return evalWhileLoop(node, env)
+
 	case *ast.LetStatement:
 		val := Eval(node.Value, env)
 		if isError(val) {
@@ -231,6 +237,37 @@ func Eval(node ast.Node, env *object.Env) object.Object {
 	}
 
 	return nil
+}
+
+func evalWhileLoop(node *ast.WhileLoop, env *object.Env) object.Object {
+	cond, ok := Eval(node.LoopCond, env).(*object.Boolean)
+	if !ok {
+		return newError("")
+	}
+
+	for cond.Value {
+		Eval(node.Body, env)
+		cond = Eval(node.LoopCond, env).(*object.Boolean)
+	}
+
+	return NULL
+}
+
+func evalForLoop(node *ast.ForLoop, env *object.Env) object.Object {
+	Eval(node.LoopVar, env)
+
+	cond, ok := Eval(node.LoopCond, env).(*object.Boolean)
+	if !ok {
+		return newError("")
+	}
+
+	for cond.Value {
+		Eval(node.Body, env)
+		Eval(node.PostLoop, env)
+		cond = Eval(node.LoopCond, env).(*object.Boolean)
+	}
+
+	return NULL
 }
 
 func evalIndexExpression(left, index object.Object) object.Object {

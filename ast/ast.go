@@ -40,6 +40,54 @@ func (es *ExpresssionStatement) String() string {
 	return ""
 }
 
+type WhileLoop struct {
+	Token    token.Token
+	LoopCond Expression
+	Body     *BlockStatement
+}
+
+func (wl *WhileLoop) expressionNode() {}
+func (wl *WhileLoop) TokenLiteral() string {
+	return wl.Token.Literal
+}
+func (wl *WhileLoop) String() string {
+	var out bytes.Buffer
+	out.WriteString("while (")
+	out.WriteString(wl.LoopCond.String() + " ")
+	out.WriteString(") {\n")
+	out.WriteString(wl.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
+}
+
+type ForLoop struct {
+	Token token.Token
+
+	LoopVar  *LetStatement
+	LoopCond Expression
+	PostLoop Expression
+
+	Body *BlockStatement
+}
+
+func (fl *ForLoop) expressionNode() {}
+func (fl *ForLoop) TokenLiteral() string {
+	return fl.Token.Literal
+}
+func (fl *ForLoop) String() string {
+	var out bytes.Buffer
+	out.WriteString("for (")
+	out.WriteString(fl.LoopVar.String() + " ")
+	out.WriteString(fl.LoopCond.String() + " ")
+	out.WriteString(fl.PostLoop.String())
+	out.WriteString(") {\n")
+	out.WriteString(fl.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
+}
+
 type FunctionLiteral struct {
 	Token  token.Token
 	Params []*Ident
@@ -79,7 +127,7 @@ func (ce *CallExpression) TokenLiteral() string {
 
 func (ce *CallExpression) String() string {
 	var out bytes.Buffer
-
+	fmt.Println("call")
 	args := []string{}
 
 	for _, a := range ce.Args {

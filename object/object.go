@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Arch-4ng3l/Monkey/ast"
 	"github.com/therecipe/qt/widgets"
@@ -15,6 +16,7 @@ const (
 	BOOLEAN_OBJ = "BOOLEAN"
 	STR_OBJ     = "STRING"
 	ARR_OBJ     = "ARRAY"
+	TIME_OBJ    = "TIME"
 
 	WINDOW_OBJ = "WINDOW"
 	EDIT_OBJ   = "EDIT"
@@ -32,6 +34,19 @@ type ObjectType string
 type Object interface {
 	Type() ObjectType
 	Inspect() string
+}
+
+type Time struct {
+	Time   time.Time
+	Format string
+}
+
+func (t *Time) Type() ObjectType {
+	return TIME_OBJ
+}
+
+func (t *Time) Inspect() string {
+	return fmt.Sprintf("%d", t.Time.UnixMilli())
 }
 
 type Label struct {

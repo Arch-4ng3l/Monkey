@@ -30,6 +30,9 @@ func Init() {
 		"print": {
 			Fn: print,
 		},
+		"printf": {
+			Fn: printf,
+		},
 		"sort": {
 			Fn: sort,
 		},
@@ -42,6 +45,17 @@ func Init() {
 
 		//=========================
 
+		"toStr": {
+			Fn: toStr,
+		},
+		"toInt": {
+			Fn: toInt,
+		},
+		"toFloat": {
+			Fn: toFloat,
+		},
+
+		//=========================
 		"randInt": {
 			Fn: randInt,
 		},

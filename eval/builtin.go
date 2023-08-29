@@ -3,6 +3,7 @@ package eval
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 
 	"github.com/Arch-4ng3l/Monkey/guilib"
 	"github.com/Arch-4ng3l/Monkey/object"
@@ -446,6 +447,104 @@ func randIntArray(args ...object.Object) object.Object {
 	return &object.Array{
 		Elements: objs,
 	}
+}
+
+func printf(args ...object.Object) object.Object {
+	if len(args) < 1 {
+		return argumentAmountError(1, len(args))
+	}
+
+	str, ok := args[0].(*object.String)
+	if !ok {
+		return argumentTypeError(object.STR_OBJ, args[0].Type(), 1)
+	}
+	list := []any{}
+	for _, arg := range args[1:] {
+		switch arg := arg.(type) {
+		case *object.Integer:
+			list = append(list, arg.Value)
+		case *object.Boolean:
+			list = append(list, arg.Value)
+		case *object.Float:
+			list = append(list, arg.Value)
+		case *object.String:
+			list = append(list, arg.Value)
+		default:
+			return newError("Object of Type %s cant be Formated", arg.Type())
+		}
+	}
+	formatedStr := formatString(str.Value, list...)
+
+	fmt.Println(formatedStr)
+
+	return NULL
+}
+
+func toStr(args ...object.Object) object.Object {
+
+	if len(args) != 1 {
+		return argumentAmountError(1, len(args))
+	}
+
+	switch arg := args[0].(type) {
+	case *object.Integer:
+		return &object.String{
+			Value: fmt.Sprintf("%d", arg.Value),
+		}
+	case *object.Float:
+		return &object.String{
+			Value: fmt.Sprintf("%f", arg.Value),
+		}
+	default:
+		return newError("Object of Type %s cant be converted to String", arg.Type())
+	}
+
+}
+
+func toInt(args ...object.Object) object.Object {
+
+	if len(args) != 1 {
+		return argumentAmountError(1, len(args))
+	}
+
+	switch arg := args[0].(type) {
+	case *object.String:
+		if i, err := strconv.ParseInt(arg.Value, 0, 64); err == nil {
+			return &object.Integer{
+				Value: int(i),
+			}
+		} else {
+			return newError("String cant be converted to Integer")
+		}
+	default:
+	}
+
+	return newError("Object of Type %s cant be converted to Integer", args[0].Type())
+}
+
+func toFloat(args ...object.Object) object.Object {
+
+	if len(args) != 1 {
+		return argumentAmountError(1, len(args))
+	}
+
+	switch arg := args[0].(type) {
+	case *object.String:
+		if f, err := strconv.ParseFloat(arg.Value, 64); err == nil {
+			return &object.Float{
+				Value: f,
+			}
+		} else {
+			return newError("String cant be converted to Integer")
+		}
+	default:
+		return newError("Object of Type %s cant be converted to Integer", args[0].Type())
+	}
+
+}
+
+func formatString(str string, args ...any) string {
+	return fmt.Sprintf(str, args...)
 }
 
 func argumentAmountError(num1, num2 int) *object.Error {

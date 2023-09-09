@@ -21,14 +21,36 @@ func parse(input string) *ast.Program {
 	p := parser.NewParser(l)
 	return p.ParseProgram()
 }
+func TestBoolArithmetic(t *testing.T) {
+	tests := []vmTestCase{
+		{"true", true},
+		{"false", false},
+	}
+	runVmTest(t, tests)
+}
 
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []vmTestCase{
 		{"1", 1},
 		{"2", 2},
 		{"1 + 2", 3},
+		{"2 - 1", 1},
+		{"1 * 2 / 2 + 1", 2},
+		{"2 * (2 + 1)", 6},
 	}
 	runVmTest(t, tests)
+}
+
+func testBoolObject(expected bool, actual object.Object) error {
+	result, ok := actual.(*object.Boolean)
+	if !ok {
+		return fmt.Errorf("Object is not a Boolean got %T", actual)
+	}
+	if result.Value != expected {
+		return fmt.Errorf("Object has wrong Value want %t got %t", expected, result.Value)
+	}
+
+	return nil
 }
 
 func testIntegerObject(expected int, actual object.Object) error {
@@ -59,7 +81,7 @@ func runVmTest(t *testing.T, tests []vmTestCase) {
 		if err != nil {
 			t.Fatalf("%s", err)
 		}
-		stackElem := vm.StackTop()
+		stackElem := vm.LastPoppedStackElement()
 
 		testExpectedObject(t, tt.expected, stackElem)
 	}
@@ -72,6 +94,11 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		err := testIntegerObject(expected, actual)
 		if err != nil {
 			t.Errorf("test Integer Object failed: %s", err)
+		}
+	case bool:
+		err := testBoolObject(expected, actual)
+		if err != nil {
+			t.Errorf("test Bool Object failed: %s", err)
 		}
 	}
 }

@@ -10,6 +10,9 @@ import (
 
 const StackSize = 2048
 
+var True = &object.Boolean{Value: true}
+var False = &object.Boolean{Value: false}
+
 type Vm struct {
 	constans     []object.Object
 	instructions code.Instructions
@@ -47,17 +50,59 @@ func (vm *Vm) Run() error {
 			if err != nil {
 				return err
 			}
-		case code.OpAdd:
-			right := vm.pop()
-			left := vm.pop()
-			leftVal := left.(*object.Integer).Value
-			rightVal := right.(*object.Integer).Value
-			result := leftVal + rightVal
-			vm.push(&object.Integer{Value: result})
+		case code.OpAdd, code.OpDiv, code.OpMul, code.OpSub:
+			err := vm.executeBinaryOperation(op)
+			if err != nil {
+				return err
+			}
+		case code.OpTrue:
+			err := vm.push(True)
+			if err != nil {
+				return err
+			}
+		case code.OpFalse:
+			err := vm.push(False)
+			if err != nil {
+				return err
+			}
+
+		case code.OpPop:
+			vm.pop()
 		}
 
 	}
 	return nil
+}
+
+func (vm *Vm) executeBinaryOperation(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+	leftType := left.Type()
+	rightType := right.Type()
+
+	if leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ {
+		return vm.executeBinaryIntOperation(op, left, right)
+	}
+	return nil
+}
+func (vm *Vm) executeBinaryIntOperation(op code.Opcode, left, right object.Object) error {
+	leftVal := left.(*object.Integer).Value
+	rightVal := right.(*object.Integer).Value
+	var res int
+	switch op {
+	case code.OpAdd:
+		res = leftVal + rightVal
+	case code.OpDiv:
+		res = leftVal / rightVal
+	case code.OpMul:
+		res = leftVal * rightVal
+	case code.OpSub:
+		res = leftVal - rightVal
+	default:
+		return fmt.Errorf("unknown Operator for integers: %d", op)
+	}
+
+	return vm.push(&object.Integer{Value: res})
 }
 
 func (vm *Vm) push(obj object.Object) error {
@@ -73,4 +118,8 @@ func (vm *Vm) pop() object.Object {
 	obj := vm.stack[vm.stackPointer-1]
 	vm.stackPointer--
 	return obj
+}
+
+func (vm *Vm) LastPoppedStackElement() object.Object {
+	return vm.stack[vm.stackPointer]
 }

@@ -1,4 +1,4 @@
-package guilib
+package main 
 
 type Button struct {
 }

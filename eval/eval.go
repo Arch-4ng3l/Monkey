@@ -69,37 +69,37 @@ func Init() {
 
 		//=========================
 
-		"newWindow": {
-			Fn: newWindow,
-		},
-		"openWindow": {
-			Fn: openWindow,
-		},
-		"closeWindow": {
-			Fn: closeWindow,
-		},
+		//"newWindow": {
+		//	Fn: newWindow,
+		//},
+		//"openWindow": {
+		//	Fn: openWindow,
+		//},
+		//"closeWindow": {
+		//	Fn: closeWindow,
+		//},
 
-		"addButton": {
-			Fn: addButton,
-		},
-		"addEdit": {
-			Fn: addEdit,
-		},
-		"addLabel": {
-			Fn: addLabel,
-		},
-		"addCloseButton": {
-			Fn: closeButton,
-		},
+		//"addButton": {
+		//	Fn: addButton,
+		//},
+		//"addEdit": {
+		//	Fn: addEdit,
+		//},
+		//"addLabel": {
+		//	Fn: addLabel,
+		//},
+		//"addCloseButton": {
+		//	Fn: closeButton,
+		//},
 
-		//=========================
+		////=========================
 
-		"read": {
-			Fn: read,
-		},
-		"write": {
-			Fn: write,
-		},
+		//"read": {
+		//	Fn: read,
+		//},
+		//"write": {
+		//	Fn: write,
+		//},
 
 		//=========================
 

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Arch-4ng3l/Monkey/ast"
-	"github.com/therecipe/qt/widgets"
 )
 
 const (
@@ -49,46 +48,46 @@ func (t *Time) Inspect() string {
 	return fmt.Sprintf("%d", t.Time.UnixMilli())
 }
 
-type Label struct {
-	Label *widgets.QLabel
-}
-
-func (l *Label) Type() ObjectType {
-	return LABEL_OBJ
-}
-
-func (l *Label) Inspect() string {
-	return "Label"
-}
-
-type Edit struct {
-	Edit *widgets.QLineEdit
-}
-
-func (e *Edit) Type() ObjectType {
-	return EDIT_OBJ
-}
-
-func (e *Edit) Inspect() string {
-	return "Edit"
-}
-
-type Window struct {
-	Height     int
-	Width      int
-	Title      string
-	MainWindow *widgets.QMainWindow
-	MainWidget *widgets.QWidget
-	Closed     chan bool
-}
-
-func (w *Window) Type() ObjectType {
-	return WINDOW_OBJ
-}
-
-func (w *Window) Inspect() string {
-	return fmt.Sprintf("Title:%s\nHeight:%d\nWidth:%d", w.Title, w.Height, w.Width)
-}
+//type Label struct {
+//	Label *widgets.QLabel
+//}
+//
+//func (l *Label) Type() ObjectType {
+//	return LABEL_OBJ
+//}
+//
+//func (l *Label) Inspect() string {
+//	return "Label"
+//}
+//
+//type Edit struct {
+//	Edit *widgets.QLineEdit
+//}
+//
+//func (e *Edit) Type() ObjectType {
+//	return EDIT_OBJ
+//}
+//
+//func (e *Edit) Inspect() string {
+//	return "Edit"
+//}
+//
+//type Window struct {
+//	Height     int
+//	Width      int
+//	Title      string
+//	MainWindow *widgets.QMainWindow
+//	MainWidget *widgets.QWidget
+//	Closed     chan bool
+//}
+//
+//func (w *Window) Type() ObjectType {
+//	return WINDOW_OBJ
+//}
+//
+//func (w *Window) Inspect() string {
+//	return fmt.Sprintf("Title:%s\nHeight:%d\nWidth:%d", w.Title, w.Height, w.Width)
+//}
 
 type BuiltInFunction func(args ...Object) Object
 

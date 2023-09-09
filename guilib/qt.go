@@ -1,4 +1,4 @@
-package guilib
+package main
 
 import (
 	"os"

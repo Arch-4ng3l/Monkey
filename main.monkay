@@ -1,12 +1,5 @@
-var w = newWindow(10, 10, "hello");
-var label = addLabel(w, " ");
-var edit = addEdit(w, "Type Something");
-var click = func() {
-    write(label, read(edit));
-}
+var x = 20;
+var y = 40;
 
-addButton(w, "click me", click);
 
-addCloseButton(w);
-openWindow(w);
-
+print(x);

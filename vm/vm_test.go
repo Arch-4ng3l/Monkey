@@ -25,6 +25,18 @@ func TestBoolArithmetic(t *testing.T) {
 	tests := []vmTestCase{
 		{"true", true},
 		{"false", false},
+		{"1 < 2", true},
+		{"1 > 2", false},
+		{"1 == 2", false},
+		{"1 != 2", true},
+		{"true == true", true},
+		{"false == false", true},
+		{"false != true", true},
+		{"!false", true},
+		{"!!false", false},
+		{"(1 < 2) == true", true},
+		{"(1 > 2) == true", false},
+		{"(1 > 2) == (2 < 1)", true},
 	}
 	runVmTest(t, tests)
 }
@@ -32,7 +44,8 @@ func TestBoolArithmetic(t *testing.T) {
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []vmTestCase{
 		{"1", 1},
-		{"2", 2},
+		{"-1", -1},
+		{"-2 + 2", 0},
 		{"1 + 2", 3},
 		{"2 - 1", 1},
 		{"1 * 2 / 2 + 1", 2},

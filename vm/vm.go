@@ -55,6 +55,21 @@ func (vm *Vm) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
+			err := vm.executeComparision(op)
+			if err != nil {
+				return err
+			}
+		case code.OpBang:
+			err := vm.executeBangOperator()
+			if err != nil {
+				return err
+			}
+		case code.OpMinus:
+			err := vm.executeMinusOperator()
+			if err != nil {
+				return err
+			}
 		case code.OpTrue:
 			err := vm.push(True)
 			if err != nil {
@@ -72,6 +87,65 @@ func (vm *Vm) Run() error {
 
 	}
 	return nil
+}
+
+func (vm *Vm) executeMinusOperator() error {
+	operand := vm.pop()
+	if operand.Type() != object.INTEGER_OBJ {
+		return fmt.Errorf("Operand Is not An Integer Object: %s", operand.Type())
+	}
+
+	val := operand.(*object.Integer).Value
+
+	return vm.push(&object.Integer{Value: -val})
+}
+
+func (vm *Vm) executeBangOperator() error {
+	operand := vm.pop()
+	switch operand {
+	case True:
+		return vm.push(False)
+	case False:
+		return vm.push(True)
+	default:
+		return vm.push(False)
+	}
+
+}
+func (vm *Vm) executeComparision(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+	if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+		return vm.executeIntegerComparision(op, left, right)
+	}
+	switch op {
+	case code.OpEqual:
+		vm.push(vm.boolToBoolObject(left == right))
+	case code.OpNotEqual:
+		vm.push(vm.boolToBoolObject(left != right))
+	}
+
+	return nil
+}
+func (vm *Vm) executeIntegerComparision(op code.Opcode, left, right object.Object) error {
+	leftVal := left.(*object.Integer).Value
+	rightVal := right.(*object.Integer).Value
+	switch op {
+	case code.OpGreaterThan:
+		vm.push(vm.boolToBoolObject(leftVal > rightVal))
+	case code.OpEqual:
+		vm.push(vm.boolToBoolObject(leftVal == rightVal))
+	case code.OpNotEqual:
+		vm.push(vm.boolToBoolObject(leftVal != rightVal))
+	}
+
+	return nil
+}
+func (vm *Vm) boolToBoolObject(input bool) *object.Boolean {
+	if input {
+		return True
+	}
+	return False
 }
 
 func (vm *Vm) executeBinaryOperation(op code.Opcode) error {

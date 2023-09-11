@@ -41,6 +41,25 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 		c.emit(code.OpPop)
 
+	case *ast.IfExpression:
+		err := c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+
+		c.emit(code.OpJmpNotTrue, 9999)
+		err = c.Compile(node.If)
+		if err != nil {
+			return err
+		}
+	case *ast.BlockStatement:
+		for i := range node.Statements {
+			err := c.Compile(node.Statements[i])
+			if err != nil {
+				return err
+			}
+		}
+
 	case *ast.InfixExpression:
 		if node.Operator == "<" {
 			err := c.Compile(node.Right)

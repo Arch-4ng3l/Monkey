@@ -31,9 +31,23 @@ func TestConditionals(t *testing.T) {
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
 				code.Make(code.OpJmpNotTrue, 7),
-				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 0),
 				code.Make(code.OpPop),
 				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "if(true) { 10 } else { 20 }; 1;",
+			expectedConstants: []interface{}{10, 20, 1},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpJmpNotTrue, 10),
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpJmp, 13),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPop),
+				code.Make(code.OpConstant, 2),
 				code.Make(code.OpPop),
 			},
 		},
@@ -254,7 +268,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 
 	for i, ins := range concatted {
 		if actual[i] != ins {
-			return fmt.Errorf("wrong instruction at %d want %q got %q", i, concatted, actual)
+			return fmt.Errorf("wrong instruction at %d \nwant %q \ngot  %q", i, concatted, actual)
 		}
 	}
 

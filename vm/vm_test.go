@@ -21,6 +21,22 @@ func parse(input string) *ast.Program {
 	p := parser.NewParser(l)
 	return p.ParseProgram()
 }
+
+func TestConditionals(t *testing.T) {
+	tests := []vmTestCase{
+		{"if (true) { 10 }", 10},
+		{"if (true) { 10 } else { 20 }", 10},
+		{"if (10 < 5) { 10 } else { 20 }", 20},
+		{"if (10 > 5) { 10 } else { 20 }", 10},
+		{"if (!false) { 10 } else { 20 }", 10},
+		{"if (false) { 10 }", Null},
+		{"if (1 > 2) { 10 }", Null},
+		{"if (!true) { 10 }", Null},
+	}
+
+	runVmTest(t, tests)
+}
+
 func TestBoolArithmetic(t *testing.T) {
 	tests := []vmTestCase{
 		{"true", true},
@@ -103,6 +119,10 @@ func runVmTest(t *testing.T, tests []vmTestCase) {
 func testExpectedObject(t *testing.T, expected interface{}, actual object.Object) {
 	t.Helper()
 	switch expected := expected.(type) {
+	case *object.Null: 
+		if actual != Null {
+			t.Errorf("object is not Null got %T", actual)
+		}
 	case int:
 		err := testIntegerObject(expected, actual)
 		if err != nil {

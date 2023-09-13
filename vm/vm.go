@@ -12,6 +12,7 @@ const StackSize = 2048
 
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
+var Null = &object.Null{}
 
 type Vm struct {
 	constans     []object.Object
@@ -42,6 +43,17 @@ func (vm *Vm) Run() error {
 		op := code.Opcode(vm.instructions[i])
 
 		switch op {
+		case code.OpJmp:
+			pos := int(code.ReadUint16(vm.instructions[i+1:]))
+			i = pos - 1
+		case code.OpJmpNotTrue:
+			pos := int(code.ReadUint16(vm.instructions[i+1:]))
+			i += 2
+			condition := vm.pop()
+			if !isTrue(condition) {
+				i = pos - 1
+			}
+
 		case code.OpConstant:
 			constIndex := code.ReadUint16(vm.instructions[i+1:])
 			i += 2
@@ -80,6 +92,11 @@ func (vm *Vm) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpNull:
+			err := vm.push(Null)
+			if err != nil {
+				return err
+			}
 
 		case code.OpPop:
 			vm.pop()
@@ -106,6 +123,8 @@ func (vm *Vm) executeBangOperator() error {
 	case True:
 		return vm.push(False)
 	case False:
+		return vm.push(True)
+	case Null:
 		return vm.push(True)
 	default:
 		return vm.push(False)
@@ -196,4 +215,15 @@ func (vm *Vm) pop() object.Object {
 
 func (vm *Vm) LastPoppedStackElement() object.Object {
 	return vm.stack[vm.stackPointer]
+}
+
+func isTrue(obj object.Object) bool {
+	switch obj := obj.(type) {
+	case *object.Boolean:
+		return obj.Value
+	case *object.Null:
+		return false
+	default:
+		return true
+	}
 }

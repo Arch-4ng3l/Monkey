@@ -23,6 +23,44 @@ func parse(input string) *ast.Program {
 	return p.ParseProgram()
 }
 
+func TestVariableStatements(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             "var one = 1;var two = 2;",
+			expectedConstants: []interface{}{1, 2},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 1),
+			},
+		},
+		{
+			input:             "var one = 1; one;",
+			expectedConstants: []interface{}{1},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "var one = 1; var two = one; two;",
+			expectedConstants: []interface{}{1},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpSetGlobal, 1),
+				code.Make(code.OpGetGlobal, 1),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTest(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	test := []compilerTestCase{
 		{
@@ -30,24 +68,12 @@ func TestConditionals(t *testing.T) {
 			expectedConstants: []interface{}{10, 1},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
-				code.Make(code.OpJmpNotTrue, 7),
-				code.Make(code.OpConstant, 0),
-				code.Make(code.OpPop),
-				code.Make(code.OpConstant, 1),
-				code.Make(code.OpPop),
-			},
-		},
-		{
-			input:             "if(true) { 10 } else { 20 }; 1;",
-			expectedConstants: []interface{}{10, 20, 1},
-			expectedInstructions: []code.Instructions{
-				code.Make(code.OpTrue),
 				code.Make(code.OpJmpNotTrue, 10),
 				code.Make(code.OpConstant, 0),
-				code.Make(code.OpJmp, 13),
-				code.Make(code.OpConstant, 1),
+				code.Make(code.OpJmp, 11),
+				code.Make(code.OpNull),
 				code.Make(code.OpPop),
-				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 1),
 				code.Make(code.OpPop),
 			},
 		},

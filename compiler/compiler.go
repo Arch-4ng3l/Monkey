@@ -35,6 +35,12 @@ func New() *Compiler {
 		symbolTable:         NewSymbolTable(),
 	}
 }
+func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
+	comp := New()
+	comp.symbolTable = s
+	comp.constants = constants
+	return comp
+}
 
 func (c *Compiler) Compile(node ast.Node) error {
 	switch node := node.(type) {
@@ -171,6 +177,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.IntLiteral:
 		integer := &object.Integer{Value: int(node.Value)}
 		c.emit(code.OpConstant, c.addConstant(integer))
+	case *ast.StrLiteral:
+		str := &object.String{Value: node.Value}
+		c.emit(code.OpConstant, c.addConstant(str))
 
 	case *ast.Boolean:
 		if node.Value {

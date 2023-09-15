@@ -9,6 +9,7 @@ import (
 )
 
 const StackSize = 2048
+const GlobalSize = 65536
 
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
@@ -20,6 +21,7 @@ type Vm struct {
 
 	stack        []object.Object
 	stackPointer int
+	globals      []object.Object
 }
 
 func New(bytecode *compiler.Bytecode) *Vm {
@@ -28,7 +30,13 @@ func New(bytecode *compiler.Bytecode) *Vm {
 		constans:     bytecode.Constants,
 		stack:        make([]object.Object, StackSize),
 		stackPointer: 0,
+		globals:      make([]object.Object, GlobalSize),
 	}
+}
+func NewWithGLobalStore(bytecode *compiler.Bytecode, s []object.Object) *Vm {
+	vm := New(bytecode)
+	vm.globals = s
+	return vm
 }
 
 func (vm *Vm) StackTop() object.Object {
@@ -59,6 +67,19 @@ func (vm *Vm) Run() error {
 			i += 2
 
 			err := vm.push(vm.constans[constIndex])
+			if err != nil {
+				return err
+			}
+		case code.OpSetGlobal:
+			globalIdx := code.ReadUint16(vm.instructions[i+1:])
+			i += 2
+
+			vm.globals[globalIdx] = vm.pop()
+		case code.OpGetGlobal:
+			globalIdx := code.ReadUint16(vm.instructions[i+1:])
+			i += 2
+			err := vm.push(vm.globals[globalIdx])
+
 			if err != nil {
 				return err
 			}
@@ -176,8 +197,25 @@ func (vm *Vm) executeBinaryOperation(op code.Opcode) error {
 	if leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ {
 		return vm.executeBinaryIntOperation(op, left, right)
 	}
+	if leftType == object.STR_OBJ && rightType == object.STR_OBJ {
+		return vm.executeBinaryStrOperation(op, left, right)
+	}
 	return nil
 }
+func (vm *Vm) executeBinaryStrOperation(op code.Opcode, left, right object.Object) error {
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+	var res string
+	switch op {
+	case code.OpAdd:
+		res = leftVal + rightVal
+		return vm.push(&object.String{Value: res})
+	default:
+		return fmt.Errorf("unknown Operator for Strings: %d", op)
+	}
+
+}
+
 func (vm *Vm) executeBinaryIntOperation(op code.Opcode, left, right object.Object) error {
 	leftVal := left.(*object.Integer).Value
 	rightVal := right.(*object.Integer).Value

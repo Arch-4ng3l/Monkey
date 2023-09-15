@@ -7,6 +7,7 @@ import (
 
 	"github.com/Arch-4ng3l/Monkey/compiler"
 	"github.com/Arch-4ng3l/Monkey/lexer"
+	"github.com/Arch-4ng3l/Monkey/object"
 	"github.com/Arch-4ng3l/Monkey/parser"
 	"github.com/Arch-4ng3l/Monkey/vm"
 	"github.com/TwiN/go-color"
@@ -38,6 +39,9 @@ const MONKEY_FACE = `
 func Sart(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	fmt.Fprintf(out, "%s%s%s%s", color.Green, color.Bold, MONKEY_FACE, color.Reset)
+	constansts := []object.Object{}
+	globals := make([]object.Object, vm.GlobalSize)
+	symbolTable := compiler.NewSymbolTable()
 	for {
 		fmt.Fprintf(out, PROMPT)
 		scanned := scanner.Scan()
@@ -55,14 +59,16 @@ func Sart(in io.Reader, out io.Writer) {
 				fmt.Fprintf(out, "ERROR: %s\n", err)
 			}
 		}
-		comp := compiler.New()
+		comp := compiler.NewWithState(symbolTable, constansts)
 		err := comp.Compile(program)
 		if err != nil {
 			fmt.Fprintf(out, "%s", err)
 			continue
 		}
 
-		vmachine := vm.New(comp.Bytecode())
+		code := comp.Bytecode()
+		constansts = code.Constants
+		vmachine := vm.NewWithGLobalStore(code, globals)
 		err = vmachine.Run()
 		if err != nil {
 			fmt.Fprintf(out, "%s", err)

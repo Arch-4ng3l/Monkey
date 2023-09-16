@@ -61,6 +61,23 @@ func (vm *Vm) Run() error {
 			if !isTrue(condition) {
 				i = pos - 1
 			}
+		case code.OpIndex:
+			index := vm.pop()
+			left := vm.pop()
+			err := vm.executeIndex(left, index)
+			if err != nil {
+				return err
+			}
+		case code.OpArray:
+			numElements := int(code.ReadUint16(vm.instructions[i+1:]))
+			i += 2
+			arr := vm.buildArr(vm.stackPointer-numElements, vm.stackPointer)
+			vm.stackPointer = vm.stackPointer - numElements
+
+			err := vm.push(arr)
+			if err != nil {
+				return err
+			}
 
 		case code.OpConstant:
 			constIndex := code.ReadUint16(vm.instructions[i+1:])
@@ -125,6 +142,48 @@ func (vm *Vm) Run() error {
 
 	}
 	return nil
+}
+
+func (vm *Vm) executeIndex(left, index object.Object) error {
+	if index.Type() != object.INTEGER_OBJ {
+		return fmt.Errorf("Cant use %s As indext", index.Type())
+	}
+	if left.Type() == object.ARR_OBJ {
+		return vm.executeArrIdx(left, index)
+	}
+	if left.Type() == object.STR_OBJ {
+		return vm.executeStrIdx(left, index)
+	}
+
+	return fmt.Errorf("Cant index %s with %s", left.Type(), index.Type())
+}
+
+func (vm *Vm) executeStrIdx(left, index object.Object) error {
+	str := left.(*object.String)
+	i := index.(*object.Integer).Value
+	max := len(str.Value) - 1
+	if i < 0 || i > max {
+		return vm.push(Null)
+	}
+	return vm.push(&object.String{Value: string(str.Value[i])})
+}
+
+func (vm *Vm) executeArrIdx(left, index object.Object) error {
+	arr := left.(*object.Array)
+	i := index.(*object.Integer).Value
+	max := len(arr.Elements) - 1
+	if i < 0 || i > max {
+		return vm.push(Null)
+	}
+	return vm.push(arr.Elements[i])
+}
+
+func (vm *Vm) buildArr(startIdx, endIdx int) object.Object {
+	elements := make([]object.Object, endIdx-startIdx)
+	for i := startIdx; i < endIdx; i++ {
+		elements[i-startIdx] = vm.stack[i]
+	}
+	return &object.Array{Elements: elements}
 }
 
 func (vm *Vm) executeMinusOperator() error {

@@ -22,10 +22,30 @@ func parse(input string) *ast.Program {
 	return p.ParseProgram()
 }
 
+func TestArrayExpression(t *testing.T) {
+	tests := []vmTestCase{
+		{"[]", []int{}},
+		{"[][0]", Null},
+		{"[1, 2, 3]", []int{1, 2, 3}},
+		{"[1 + 2, 2 * 3]", []int{3, 6}},
+		{"[1 + 2, 2 * 3][0]", 3},
+		{"[1 + 2, 2 * 3][-1]", Null},
+		{"[1 + 2, 2 * 3][-1]", Null},
+		{"var x = []; x[0]", Null},
+		{`["apple", "banana", "cherry"]`, []string{"apple", "banana", "cherry"}},
+		{`["Hello", " ", "world"][2]`, "world"},
+		{`[[1, 2], [3, 4, 5], [6]]`, [][]int{{1, 2}, {3, 4, 5}, {6}}},
+		{`[[1, 2], ["a", "b", "c"], [true, false]]`, [][]interface{}{{1, 2}, {"a", "b", "c"}, {true, false}}},
+	}
+	runVmTest(t, tests)
+
+}
+
 func TestStringExpressions(t *testing.T) {
 	tests := []vmTestCase{
 		{`"monkey"`, "monkey"},
 		{`"mon" + "key"`, "monkey"},
+		{`var x = "mon" + "key"; x[1]`, "o"},
 	}
 	runVmTest(t, tests)
 }
@@ -189,6 +209,22 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		err := testIntegerObject(expected, actual)
 		if err != nil {
 			t.Errorf("test Integer Object failed: %s", err)
+		}
+	case []int:
+		arr, ok := actual.(*object.Array)
+		if !ok {
+			t.Errorf("object Is Not An Array")
+			return
+		}
+
+		if len(arr.Elements) != len(expected) {
+			return
+		}
+		for i, el := range expected {
+			err := testIntegerObject(el, arr.Elements[i])
+			if err != nil {
+				t.Errorf("test Integer Object failed: %s", err)
+			}
 		}
 	case bool:
 		err := testBoolObject(expected, actual)

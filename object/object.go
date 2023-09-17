@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Arch-4ng3l/Monkey/ast"
+	"github.com/Arch-4ng3l/Monkey/code"
 )
 
 const (
@@ -21,11 +22,12 @@ const (
 	EDIT_OBJ   = "EDIT"
 	LABEL_OBJ  = "LABEL"
 
-	NULL         = "NULL"
-	RETURN_OBJ   = "RETURN_OBJ"
-	FUNCTION_OBJ = "FUNCTION_OBJ"
-	ERROR_OBJ    = "ERROR"
-	BUILTIN_OBJ  = "BUILTIN_FUNCTION"
+	NULL                  = "NULL"
+	RETURN_OBJ            = "RETURN_OBJ"
+	FUNCTION_OBJ          = "FUNCTION_OBJ"
+	ERROR_OBJ             = "ERROR"
+	BUILTIN_OBJ           = "BUILTIN_FUNCTION"
+	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION"
 )
 
 type ObjectType string
@@ -46,6 +48,18 @@ func (t *Time) Type() ObjectType {
 
 func (t *Time) Inspect() string {
 	return fmt.Sprintf("%d", t.Time.UnixMilli())
+}
+
+type CompiledFunction struct {
+	Instructions code.Instructions
+}
+
+func (cf *CompiledFunction) Type() ObjectType {
+	return COMPILED_FUNCTION_OBJ
+}
+
+func (cf *CompiledFunction) Inspect() string {
+	return fmt.Sprintf("CompiledFunction[%p]", cf)
 }
 
 //type Label struct {

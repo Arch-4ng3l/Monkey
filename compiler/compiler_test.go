@@ -23,6 +23,86 @@ func parse(input string) *ast.Program {
 	return p.ParseProgram()
 }
 
+func TestCompilerScopes(t *testing.T) {
+	compiler := New()
+	if compiler.scopeIdx != 0 {
+		t.Errorf("scopeIdx wrong want 0 got %d", compiler.scopeIdx)
+	}
+	compiler.emit(code.OpMul)
+	compiler.enterScope()
+	if compiler.scopeIdx != 1 {
+		t.Errorf("scopeIdx wrong want 1 got %d", compiler.scopeIdx)
+	}
+
+	compiler.emit(code.OpSub)
+	if len(compiler.scopes[compiler.scopeIdx].instructions) != 1 {
+		t.Errorf("instructions length wrong got %d",
+			len(compiler.scopes[compiler.scopeIdx].instructions))
+	}
+	last := compiler.scopes[compiler.scopeIdx].lastInstruction
+	if last.Opcode != code.OpSub {
+		t.Errorf("Wrong OpCode got %d", last.Opcode)
+	}
+	compiler.leaveScope()
+	if compiler.scopeIdx != 0 {
+		t.Errorf("scopeIdx wrong want 0 got %d", compiler.scopeIdx)
+	}
+	compiler.emit(code.OpAdd)
+
+	if len(compiler.scopes[compiler.scopeIdx].instructions) != 2 {
+		t.Errorf("instructions length wrong got %d",
+			len(compiler.scopes[compiler.scopeIdx].instructions))
+	}
+
+	last = compiler.scopes[compiler.scopeIdx].lastInstruction
+	if last.Opcode != code.OpAdd {
+		t.Errorf("Wrong OpCode got %d", last.Opcode)
+	}
+
+	prev := compiler.scopes[compiler.scopeIdx].prevInstruction
+	if prev.Opcode != code.OpMul {
+		t.Errorf("Wrong OpCode got %d", prev.Opcode)
+	}
+
+}
+
+func TestFunctionLiterals(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `func() { return 5 + 10; };`,
+			expectedConstants: []interface{}{
+				5, 10,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `func() { 5 + 10 };`,
+			expectedConstants: []interface{}{
+				5, 10,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTest(t, tests)
+}
 func TestArrayLiterals(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -161,6 +241,7 @@ func TestConditionals(t *testing.T) {
 }
 
 func TestBooleanExpressions(t *testing.T) {
+
 	test := []compilerTestCase{
 		{
 			input:             "true",
@@ -343,6 +424,15 @@ func testConstants(t *testing.T, expected []interface{}, actual []object.Object)
 	}
 	for i, constant := range expected {
 		switch constant := constant.(type) {
+		case []code.Instructions:
+			fn, ok := actual[i].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("Object is Not a function got %T", actual[i])
+			}
+			err := testInstructions(constant, fn.Instructions)
+			if err != nil {
+				return err
+			}
 		case int:
 			err := testIntegerObject(constant, actual[i])
 			if err != nil {

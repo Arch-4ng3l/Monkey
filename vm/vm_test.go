@@ -22,6 +22,16 @@ func parse(input string) *ast.Program {
 	return p.ParseProgram()
 }
 
+func TestFunctionCalls(t *testing.T) {
+	tests := []vmTestCase{
+		{`var f = func() { 5 + 10 }; f();`, 15},
+		{`var fo = func() { return 20; };var f = func() { 5 + fo() }; f();`, 25},
+		{`var f = func() {}; f();`, Null},
+		{`var f = func() {return 1;}; var x = func() { return f; } x()();`, 1},
+	}
+	runVmTest(t, tests)
+}
+
 func TestArrayExpression(t *testing.T) {
 	tests := []vmTestCase{
 		{"[]", []int{}},

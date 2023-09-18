@@ -9,6 +9,7 @@ import (
 )
 
 const StackSize = 2048
+const FrameSize = 2048
 const GlobalSize = 65536
 
 var True = &object.Boolean{Value: true}
@@ -16,27 +17,48 @@ var False = &object.Boolean{Value: false}
 var Null = &object.Null{}
 
 type Vm struct {
-	constans     []object.Object
-	instructions code.Instructions
+	constans []object.Object
 
 	stack        []object.Object
 	stackPointer int
 	globals      []object.Object
+	frames       []*Frame
+	frameIdx     int
 }
 
 func New(bytecode *compiler.Bytecode) *Vm {
+	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
+	mainFrame := NewFrame(mainFn)
+
+	frames := make([]*Frame, FrameSize)
+	frames[0] = mainFrame
 	return &Vm{
-		instructions: bytecode.Instructions,
 		constans:     bytecode.Constants,
 		stack:        make([]object.Object, StackSize),
 		stackPointer: 0,
 		globals:      make([]object.Object, GlobalSize),
+		frames:       frames,
+		frameIdx:     1,
 	}
 }
 func NewWithGLobalStore(bytecode *compiler.Bytecode, s []object.Object) *Vm {
 	vm := New(bytecode)
 	vm.globals = s
 	return vm
+}
+
+func (vm *Vm) currentFrame() *Frame {
+	return vm.frames[vm.frameIdx-1]
+}
+
+func (vm *Vm) pushFrame(f *Frame) {
+	vm.frames[vm.frameIdx] = f
+	vm.frameIdx++
+}
+
+func (vm *Vm) popFrame() *Frame {
+	vm.frameIdx--
+	return vm.frames[vm.frameIdx]
 }
 
 func (vm *Vm) StackTop() object.Object {
@@ -47,20 +69,56 @@ func (vm *Vm) StackTop() object.Object {
 }
 
 func (vm *Vm) Run() error {
-	for i := 0; i < len(vm.instructions); i++ {
-		op := code.Opcode(vm.instructions[i])
+	var i int
+	var ins code.Instructions
+	var op code.Opcode
+
+	for vm.currentFrame().ip < len(vm.currentFrame().Instructions())-1 {
+		vm.currentFrame().ip++
+		i = vm.currentFrame().ip
+		ins = vm.currentFrame().Instructions()
+		op = code.Opcode(ins[i])
 
 		switch op {
+
+		case code.OpCall:
+			fn, ok := vm.stack[vm.stackPointer-1].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("calling non function")
+			}
+			frame := NewFrame(fn)
+			vm.pushFrame(frame)
+
+		case code.OpReturnValue:
+			val := vm.pop()
+			vm.popFrame()
+			vm.pop()
+			err := vm.push(val)
+			if err != nil {
+				return err
+			}
+
+		case code.OpReturn:
+			vm.popFrame()
+			vm.pop()
+			err := vm.push(Null)
+
+			if err != nil {
+				return err
+			}
+
 		case code.OpJmp:
-			pos := int(code.ReadUint16(vm.instructions[i+1:]))
-			i = pos - 1
+			pos := int(code.ReadUint16(ins[i+1:]))
+			vm.currentFrame().ip = pos - 1
+
 		case code.OpJmpNotTrue:
-			pos := int(code.ReadUint16(vm.instructions[i+1:]))
-			i += 2
+			pos := int(code.ReadUint16(ins[i+1:]))
+			vm.currentFrame().ip += 2
 			condition := vm.pop()
 			if !isTrue(condition) {
-				i = pos - 1
+				vm.currentFrame().ip = pos - 1
 			}
+
 		case code.OpIndex:
 			index := vm.pop()
 			left := vm.pop()
@@ -68,9 +126,10 @@ func (vm *Vm) Run() error {
 			if err != nil {
 				return err
 			}
+
 		case code.OpArray:
-			numElements := int(code.ReadUint16(vm.instructions[i+1:]))
-			i += 2
+			numElements := int(code.ReadUint16(ins[i+1:]))
+			vm.currentFrame().ip += 2
 			arr := vm.buildArr(vm.stackPointer-numElements, vm.stackPointer)
 			vm.stackPointer = vm.stackPointer - numElements
 
@@ -80,56 +139,65 @@ func (vm *Vm) Run() error {
 			}
 
 		case code.OpConstant:
-			constIndex := code.ReadUint16(vm.instructions[i+1:])
-			i += 2
+			constIndex := code.ReadUint16(ins[i+1:])
+			vm.currentFrame().ip += 2
 
 			err := vm.push(vm.constans[constIndex])
 			if err != nil {
 				return err
 			}
+
 		case code.OpSetGlobal:
-			globalIdx := code.ReadUint16(vm.instructions[i+1:])
-			i += 2
+			globalIdx := code.ReadUint16(ins[i+1:])
+			vm.currentFrame().ip += 2
 
 			vm.globals[globalIdx] = vm.pop()
+
 		case code.OpGetGlobal:
-			globalIdx := code.ReadUint16(vm.instructions[i+1:])
-			i += 2
+			globalIdx := code.ReadUint16(ins[i+1:])
+			vm.currentFrame().ip += 2
 			err := vm.push(vm.globals[globalIdx])
 
 			if err != nil {
 				return err
 			}
+
 		case code.OpAdd, code.OpDiv, code.OpMul, code.OpSub:
 			err := vm.executeBinaryOperation(op)
 			if err != nil {
 				return err
 			}
+
 		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
 			err := vm.executeComparision(op)
 			if err != nil {
 				return err
 			}
+
 		case code.OpBang:
 			err := vm.executeBangOperator()
 			if err != nil {
 				return err
 			}
+
 		case code.OpMinus:
 			err := vm.executeMinusOperator()
 			if err != nil {
 				return err
 			}
+
 		case code.OpTrue:
 			err := vm.push(True)
 			if err != nil {
 				return err
 			}
+
 		case code.OpFalse:
 			err := vm.push(False)
 			if err != nil {
 				return err
 			}
+
 		case code.OpNull:
 			err := vm.push(Null)
 			if err != nil {

@@ -112,6 +112,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 		afterElsePos := len(c.currentInstructions())
 		c.changeOperand(jmp, afterElsePos)
 
+	case *ast.CallExpression:
+		err := c.Compile(node.Function)
+		if err != nil {
+			return err
+		}
+		c.emit(code.OpCall)
+
 	case *ast.ReturnStatement:
 		err := c.Compile(node.Value)
 		if err != nil {

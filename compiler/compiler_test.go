@@ -66,6 +66,62 @@ func TestCompilerScopes(t *testing.T) {
 
 }
 
+func TestFunctionCalls(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `func() { 5 }();`,
+			expectedConstants: []interface{}{
+				5,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `var f = func() { 5 };
+					f();
+			`,
+			expectedConstants: []interface{}{
+				5,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `func() { 5 + 10 };`,
+			expectedConstants: []interface{}{
+				5, 10,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTest(t, tests)
+}
+
 func TestFunctionLiterals(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -475,7 +531,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 	concatted := concatInstructions(expected)
 
 	if len(actual) != len(concatted) {
-		return fmt.Errorf("wrong instruction Length want %d got %d", len(concatted), len(actual))
+		return fmt.Errorf("wrong instruction Length want %d got %d \n%q\n%q", len(concatted), len(actual), concatted, actual)
 	}
 
 	for i, ins := range concatted {

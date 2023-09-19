@@ -28,6 +28,7 @@ func TestFunctionCalls(t *testing.T) {
 		{`var fo = func() { return 20; };var f = func() { 5 + fo() }; f();`, 25},
 		{`var f = func() {}; f();`, Null},
 		{`var f = func() {return 1;}; var x = func() { return f; } x()();`, 1},
+		{`var f = func() {var f = 10; f};f()`, 10},
 	}
 	runVmTest(t, tests)
 }

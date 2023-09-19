@@ -66,6 +66,28 @@ func TestCompilerScopes(t *testing.T) {
 
 }
 
+func TestVarScopes(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: "var num = 50; func() { num }",
+			expectedConstants: []interface{}{
+				50,
+				[]code.Instructions{
+					code.Make(code.OpGetGlobal, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTest(t, tests)
+}
+
 func TestFunctionCalls(t *testing.T) {
 	tests := []compilerTestCase{
 		{

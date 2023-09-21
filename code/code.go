@@ -66,10 +66,11 @@ const (
 	OpGetLocal
 	OpSetLocal
 	OpArray
-	OpIndex
+	ndex
 	OpCall
 	OpReturnValue
 	OpReturn
+	OpIndex
 )
 
 type Definition struct {
@@ -101,7 +102,7 @@ var definitions = map[Opcode]*Definition{
 
 	OpArray:       {"OpArray", []int{2}},
 	OpIndex:       {"OpIndex", []int{}},
-	OpCall:        {"OpCall", []int{}},
+	OpCall:        {"OpCall", []int{1}},
 	OpReturn:      {"OpReturn", []int{}},
 	OpReturnValue: {"OpReturnValue", []int{}},
 }

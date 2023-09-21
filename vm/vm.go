@@ -82,13 +82,12 @@ func (vm *Vm) Run() error {
 		switch op {
 
 		case code.OpCall:
-			fn, ok := vm.stack[vm.stackPointer-1].(*object.CompiledFunction)
-			if !ok {
-				return fmt.Errorf("calling non function")
+			numArgs := code.ReadUint8(ins[i+1:])
+			vm.currentFrame().ip++
+			err := vm.callFunction(int(numArgs))
+			if err != nil {
+				return err
 			}
-			frame := NewFrame(fn, vm.stackPointer)
-			vm.pushFrame(frame)
-			vm.stackPointer = frame.BasePointer + fn.NumLocals
 
 		case code.OpReturnValue:
 			val := vm.pop()
@@ -226,6 +225,19 @@ func (vm *Vm) Run() error {
 		}
 
 	}
+	return nil
+}
+
+func (vm *Vm) callFunction(numArgs int) error {
+	fn, ok := vm.stack[vm.stackPointer-1-int(numArgs)].(*object.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("calling non function")
+	}
+
+	frame := NewFrame(fn, vm.stackPointer-numArgs)
+	vm.pushFrame(frame)
+	vm.stackPointer = frame.BasePointer + fn.NumLocals
+
 	return nil
 }
 

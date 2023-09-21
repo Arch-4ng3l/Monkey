@@ -121,7 +121,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
-		c.emit(code.OpCall)
+		for _, arg := range node.Args {
+			err := c.Compile(arg)
+			if err != nil {
+				return err
+			}
+		}
+		c.emit(code.OpCall, len(node.Args))
 
 	case *ast.ReturnStatement:
 		err := c.Compile(node.Value)
@@ -133,10 +139,15 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 	case *ast.FunctionLiteral:
 		c.enterScope()
+		for _, p := range node.Params {
+			c.symbolTable.Define(p.Value)
+		}
+
 		err := c.Compile(node.Body)
 		if err != nil {
 			return err
 		}
+
 		if c.lastInstructionIsPop() {
 			c.replaceLastPopWithReturn()
 		}

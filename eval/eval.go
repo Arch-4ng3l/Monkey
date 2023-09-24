@@ -11,98 +11,15 @@ import (
 var (
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
-	NULL  = &object.Null{}
+	NULL  = object.NullVal
 )
 var builtins map[string]*object.BuiltIn
 
 func Init() {
 
 	builtins = map[string]*object.BuiltIn{
-
-		//=========================
-
-		"len": {
-			Fn: length,
-		},
-		"push": {
-			Fn: push,
-		},
-		"print": {
-			Fn: print,
-		},
-		"printf": {
-			Fn: printf,
-		},
-		"sort": {
-			Fn: sort,
-		},
-		"typeof": {
-			Fn: typeof,
-		},
-		"map": {
-			Fn: maping,
-		},
-
-		//=========================
-
-		"toStr": {
-			Fn: toStr,
-		},
-		"toInt": {
-			Fn: toInt,
-		},
-		"toFloat": {
-			Fn: toFloat,
-		},
-
-		//=========================
-		"randInt": {
-			Fn: randInt,
-		},
-		"randFloat": {
-			Fn: randFloat,
-		},
-
-		"randIntArr": {
-			Fn: randIntArray,
-		},
-
-		//=========================
-
-		//"newWindow": {
-		//	Fn: newWindow,
-		//},
-		//"openWindow": {
-		//	Fn: openWindow,
-		//},
-		//"closeWindow": {
-		//	Fn: closeWindow,
-		//},
-
-		//"addButton": {
-		//	Fn: addButton,
-		//},
-		//"addEdit": {
-		//	Fn: addEdit,
-		//},
-		//"addLabel": {
-		//	Fn: addLabel,
-		//},
-		//"addCloseButton": {
-		//	Fn: closeButton,
-		//},
-
-		////=========================
-
-		//"read": {
-		//	Fn: read,
-		//},
-		//"write": {
-		//	Fn: write,
-		//},
-
-		//=========================
-
+		"len":   object.GetBuiltIntBuName("len"),
+		"print": object.GetBuiltIntBuName("print"),
 	}
 }
 

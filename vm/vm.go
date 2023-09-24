@@ -80,11 +80,21 @@ func (vm *Vm) Run() error {
 		op = code.Opcode(ins[i])
 
 		switch op {
+		case code.OpGetBuiltin:
+			idx := code.ReadUint8(ins[i+1:])
+			vm.currentFrame().ip++
+			def := object.Builtins[idx]
+			err := vm.push(def.Builtin)
+			if err != nil {
+				return err
+			}
 
 		case code.OpCall:
 			numArgs := code.ReadUint8(ins[i+1:])
 			vm.currentFrame().ip++
+
 			err := vm.callFunction(int(numArgs))
+
 			if err != nil {
 				return err
 			}
@@ -228,10 +238,31 @@ func (vm *Vm) Run() error {
 	return nil
 }
 
-func (vm *Vm) callFunction(numArgs int) error {
-	fn, ok := vm.stack[vm.stackPointer-1-int(numArgs)].(*object.CompiledFunction)
-	if !ok {
-		return fmt.Errorf("calling non function")
+func (vm *Vm) executeCall(numArgs int) error {
+	callee := vm.stack[vm.stackPointer-1-numArgs]
+	switch callee := callee.(type) {
+	case *object.CompiledFunction:
+		return vm.callFunction(callee, numArgs)
+	case *object.BuiltIn:
+		return vm.callBuiltin(callee, numArgs)
+	}
+	return nil
+}
+
+func (vm *Vm) callBuiltin(fn *object.BuiltIn, numArgs int) error {
+	args := vm.stack[vm.stackPointer-numArgs : vm.stackPointer]
+	res := fn.Fn(args...)
+	vm.stackPointer = vm.stackPointer - numArgs - 1
+	if res != nil {
+		vm.push(res)
+	} else {
+		vm.push(Null)
+	}
+	return nil
+}
+func (vm *Vm) callFunction(fn *object.CompiledFunction, numArgs int) error {
+	if fn.NumParams != numArgs {
+		return fmt.Errorf("Wrong Number Of Arguments Want %d Got %d", fn.NumParams, numArgs)
 	}
 
 	frame := NewFrame(fn, vm.stackPointer-numArgs)

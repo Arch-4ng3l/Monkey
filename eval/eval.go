@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/Arch-4ng3l/Monkey/ast"
 	"github.com/Arch-4ng3l/Monkey/object"
@@ -20,6 +21,12 @@ func Init() {
 	builtins = map[string]*object.BuiltIn{
 		"len":   object.GetBuiltIntBuName("len"),
 		"print": object.GetBuiltIntBuName("print"),
+		"sin":   object.GetBuiltIntBuName("sin"),
+		"cos":   object.GetBuiltIntBuName("cos"),
+		"tan":   object.GetBuiltIntBuName("tan"),
+		"cot":   object.GetBuiltIntBuName("cot"),
+		"sec":   object.GetBuiltIntBuName("sec"),
+		"csc":   object.GetBuiltIntBuName("csc"),
 	}
 }
 
@@ -547,6 +554,10 @@ func evalIntegerInfix(operator string, left, right object.Object) object.Object 
 		return &object.Integer{
 			Value: leftVal / rightVal,
 		}
+	case token.POWER:
+		return &object.Integer{
+			Value: int(math.Pow(float64(leftVal), float64(rightVal))),
+		}
 
 	default:
 
@@ -569,15 +580,24 @@ func evalPrefixExpression(right object.Object, operator string) object.Object {
 }
 
 func evalMinusOperator(right object.Object) object.Object {
-	if right.Type() != object.INTEGER_OBJ {
+
+	if right.Type() != object.INTEGER_OBJ && right.Type() != object.FLOAT_OBJ {
 
 		return newError("Unkown Oparator -%s", right.Type())
 	}
 
-	val := right.(*object.Integer).Value
+	val, ok := right.(*object.Integer)
+	if ok {
 
-	return &object.Integer{
-		Value: -val,
+		return &object.Integer{
+			Value: -val.Value,
+		}
+	} else {
+
+		val := right.(*object.Float).Value
+		return &object.Float{
+			Value: -val,
+		}
 	}
 }
 

@@ -65,8 +65,15 @@ func StartComp(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	fmt.Fprintf(out, "%s%s%s%s", color.Green, color.Bold, MONKEY_FACE, color.Reset)
 	constansts := []object.Object{}
+
 	globals := make([]object.Object, vm.GlobalSize)
+
 	symbolTable := compiler.NewSymbolTable()
+
+	for i, v := range object.Builtins {
+		symbolTable.DefineBuiltin(i, v.Name)
+	}
+
 	for {
 		fmt.Fprintf(out, PROMPT)
 		scanned := scanner.Scan()

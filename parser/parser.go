@@ -18,6 +18,7 @@ const (
 	SUM
 	PRODUCT
 	PREFIX
+	EXPONENTS
 	CALL
 	INDEX
 )
@@ -35,6 +36,7 @@ var precedences = map[token.TokenType]int{
 	token.STAR:     PRODUCT,
 	token.LPAREN:   CALL,
 	token.LBRACKET: INDEX,
+	token.POWER:    EXPONENTS,
 }
 
 type (
@@ -76,6 +78,9 @@ func NewParser(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.WHILE, p.parseWhileLoop)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
+
+	p.registeInfix(token.POWER, p.parseInfixExpression)
+
 	p.registeInfix(token.PLUS, p.parseInfixExpression)
 	p.registeInfix(token.MINUS, p.parseInfixExpression)
 	p.registeInfix(token.SLASH, p.parseInfixExpression)
@@ -363,10 +368,8 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 		Left:     left,
 	}
 	precedences := p.curPrecedence()
-
 	p.nextToken()
 	expression.Right = p.parseExpression(precedences)
-
 	return expression
 }
 

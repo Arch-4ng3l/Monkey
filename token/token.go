@@ -25,6 +25,7 @@ const (
 	MINUS_ASSIGN = "-="
 	STAR_ASSIGN  = "*="
 	SLASH_ASSIGN = "/="
+	POWER        = "^"
 
 	BANG   = "!"
 	EQ     = "=="

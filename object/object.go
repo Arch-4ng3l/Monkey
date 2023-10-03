@@ -271,10 +271,25 @@ var Builtins = []struct {
 	{"randIntArray", &BuiltIn{Fn: randIntArray}},
 	{"toStr", &BuiltIn{Fn: toStr}},
 	{"toInt", &BuiltIn{Fn: toInt}},
+
 	{"sin", &BuiltIn{Fn: sin}},
+	{"asin", &BuiltIn{Fn: asin}},
+
 	{"cos", &BuiltIn{Fn: cos}},
+	{"acos", &BuiltIn{Fn: acos}},
+
 	{"tan", &BuiltIn{Fn: tan}},
+	{"atan", &BuiltIn{Fn: atan}},
+
 	{"cot", &BuiltIn{Fn: cot}},
+	{"acot", &BuiltIn{Fn: acot}},
+
 	{"sec", &BuiltIn{Fn: sec}},
+	{"asec", &BuiltIn{Fn: asec}},
+
 	{"csc", &BuiltIn{Fn: csc}},
+	{"acsc", &BuiltIn{Fn: acsc}},
+
+	{"ln", &BuiltIn{Fn: nlog}},
+	{"log", &BuiltIn{Fn: logBase}},
 }

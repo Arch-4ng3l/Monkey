@@ -2,7 +2,6 @@ package eval
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/Arch-4ng3l/Monkey/ast"
 	"github.com/Arch-4ng3l/Monkey/object"
@@ -17,7 +16,6 @@ var (
 var builtins map[string]*object.BuiltIn
 
 func Init() {
-
 	builtins = map[string]*object.BuiltIn{
 		"len":   object.GetBuiltIntBuName("len"),
 		"print": object.GetBuiltIntBuName("print"),
@@ -426,8 +424,8 @@ func evalIntFloatInfix(operator string, left, right object.Object, pos int) obje
 		leftVal = left.(*object.Float).Value
 		rightVal = float64(right.(*object.Integer).Value)
 	case 2:
-		leftVal = left.(*object.Float).Value
-		rightVal = float64(right.(*object.Integer).Value)
+		leftVal = float64(left.(*object.Integer).Value)
+		rightVal = right.(*object.Float).Value
 
 	default:
 		return newError("")
@@ -463,6 +461,10 @@ func addNumberHelperFloat(operator string, leftVal, rightVal float64) object.Obj
 
 		return &object.Float{
 			Value: leftVal / rightVal,
+		}
+	case token.POWER:
+		return &object.Float{
+			Value: object.Power(leftVal, rightVal),
 		}
 	}
 	return nil
@@ -563,8 +565,9 @@ func evalIntegerInfix(operator string, left, right object.Object) object.Object 
 			Value: leftVal / rightVal,
 		}
 	case token.POWER:
-		return &object.Integer{
-			Value: int(math.Pow(float64(leftVal), float64(rightVal))),
+
+		return &object.Float{
+			Value: object.Power(float64(leftVal), float64(rightVal)),
 		}
 
 	default:

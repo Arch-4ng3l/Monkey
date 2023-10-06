@@ -14,10 +14,10 @@ func main() {
 	if len(os.Args) != 1 {
 		fileName := os.Args[1]
 		content, _ := os.ReadFile(fileName)
-		output := exec.ExecCode(string(content))
+		output := exec.ExecCodeWithInterpreter(string(content))
 		fmt.Println("output " + output)
 	} else {
-		repl.Sart(input, os.Stdout)
+		repl.StartComp(input, os.Stdout)
 	}
 
 }

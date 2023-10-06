@@ -19,20 +19,31 @@ func Init() {
 	builtins = map[string]*object.BuiltIn{
 		"len":   object.GetBuiltIntBuName("len"),
 		"print": object.GetBuiltIntBuName("print"),
-		"sin":   object.GetBuiltIntBuName("sin"),
-		"cos":   object.GetBuiltIntBuName("cos"),
-		"tan":   object.GetBuiltIntBuName("tan"),
-		"cot":   object.GetBuiltIntBuName("cot"),
-		"sec":   object.GetBuiltIntBuName("sec"),
-		"csc":   object.GetBuiltIntBuName("csc"),
-		"ln":    object.GetBuiltIntBuName("ln"),
-		"log":   object.GetBuiltIntBuName("log"),
-		"atan":  object.GetBuiltIntBuName("atan"),
-		"asin":  object.GetBuiltIntBuName("asin"),
-		"acos":  object.GetBuiltIntBuName("acos"),
-		"acot":  object.GetBuiltIntBuName("acot"),
-		"asec":  object.GetBuiltIntBuName("asec"),
-		"acsc":  object.GetBuiltIntBuName("acsc"),
+
+		// =============================================================//
+		"sin":  object.GetBuiltIntBuName("sin"),
+		"cos":  object.GetBuiltIntBuName("cos"),
+		"tan":  object.GetBuiltIntBuName("tan"),
+		"cot":  object.GetBuiltIntBuName("cot"),
+		"sec":  object.GetBuiltIntBuName("sec"),
+		"csc":  object.GetBuiltIntBuName("csc"),
+		"ln":   object.GetBuiltIntBuName("ln"),
+		"log":  object.GetBuiltIntBuName("log"),
+		"atan": object.GetBuiltIntBuName("atan"),
+		"asin": object.GetBuiltIntBuName("asin"),
+		"acos": object.GetBuiltIntBuName("acos"),
+		"acot": object.GetBuiltIntBuName("acot"),
+		"asec": object.GetBuiltIntBuName("asec"),
+		"acsc": object.GetBuiltIntBuName("acsc"),
+		// =============================================================//
+
+		"push":         object.GetBuiltIntBuName("push"),
+		"sort":         object.GetBuiltIntBuName("sort"),
+		"typeof":       object.GetBuiltIntBuName("typeof"),
+		"randInt":      object.GetBuiltIntBuName("randInt"),
+		"randIntArray": object.GetBuiltIntBuName("randIntArray"),
+		"toStr":        object.GetBuiltIntBuName("toStr"),
+		"toInt":        object.GetBuiltIntBuName("toInt"),
 	}
 }
 

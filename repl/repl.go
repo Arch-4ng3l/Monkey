@@ -106,7 +106,5 @@ func StartComp(in io.Reader, out io.Writer) {
 			fmt.Fprintf(out, "%s", err)
 			continue
 		}
-		io.WriteString(out, vmachine.LastPoppedStackElement().Inspect())
-		io.WriteString(out, "\n")
 	}
 }
